@@ -2,10 +2,21 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../lib/utils/generateToken.js";
 
-// Simple email validator
-const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+export const LoginController=async()=>{
 
-export const SignupController = async (req, res) => {
+}
+
+
+export const LogoutController=async()=>{
+
+}
+
+
+// Simple email validator
+
+
+export const SingupController = async (req, res) => {
+   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   try {
     const { username, fullname, email, password } = req.body;
 
@@ -26,7 +37,9 @@ export const SignupController = async (req, res) => {
         return res.status(400).json({ message: "Email already registered" });
       }
     }
-
+   if(password.length <6){
+      res.status(400).json({message:"password length should be greater than 6"})
+   }
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);

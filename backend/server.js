@@ -5,6 +5,8 @@ import authRoutes from "./routes/authRoutes.routes.js";
 import connectmongodb from "./Database/db.js";
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 
 app.use("/api/auth", authRoutes);
