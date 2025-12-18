@@ -2,17 +2,46 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../lib/utils/generateToken.js";
 
-export const LoginController=async()=>{
-
+export const LoginController=async(req,res)=>{
+  try{
+    const {username,password}=req.body;
+    const user= await User.findOne({username});
+    const ispasswordcorrect= await bcrypt.compare(password,user?.password || "");
+    if(!user || !ispasswordcorrect){
+      res.status(404).json({message:"user is not found "})
+    }
+    generateTokenAndSetCookie(user._id,res );
+    res.status(201).json({
+      sucess:true,
+      message:"sucessfull login welcome to our website",
+      _id:user._id,
+      usename:user.username,
+    })
+}catch(error){
+     console.log("error in the login controller ")
+     res.status(500).json({
+      success:false,
+      message:"error in login controller internal server error"
+     })
+  }
 }
 
 
-export const LogoutController=async()=>{
-
+export const LogoutController=async(req,res)=>{
+  try{
+    res.cookie("jwt","",{maxAge:0})
+    res.status(200).json({
+          sucess:true,
+          message:"logout sucessfully",
+      })
+  }catch(error){
+    console.log(error)
+      res.status(500).json({
+        sucess:false,
+        message:"failed in logout controller "
+      })
+  }
 }
-
-
-// Simple email validator
 
 
 export const SingupController = async (req, res) => {
@@ -77,3 +106,17 @@ export const SingupController = async (req, res) => {
     });
   }
 };
+
+
+export const getme=async(req,res)=> {
+  try{
+    const user=await User.findById(req.user._id).select("-password")
+    res.status(201).json(user);
+
+
+  }catch(error){
+   res.status(500).json({
+    message:"eroor in the get me middleware"
+   })
+  }
+}
