@@ -1,49 +1,37 @@
 import User from "../models/user.model.js";
-import Post from "../models/post.model.js"
+import Post from "../models/post.model.js";
 import Notification from "../models/notification.model.js"; 
 import {v2 as cloudinary} from "cloudinary";
-export const createpost = async (req, res) => {
-  try {
-    const { text } = req.body;
-    let { img } = req.body;
-    const userId = req.user._id;
 
-    // 1. Check user
-    const findUser = await User.findById(userId);
-    if (!findUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
+export const createPost = async (req, res) => {
+	try{
+   const {img,text}=req.body;
+   const id=req.user.id;
+   if(!img || !text){
+	   return res.status(400).json({message:"img and text is required"});
+   }
+   let cloudurl="";
+   if(img){
+	try{
+	const cloudimg= await cloudinary.uploader.upload(img);
+	   cloudurl= cloudimg.secure_url;
+	}catch(error){
+		return res.status(400).json({message:"error in uploading img "});
+	}
+   }
+   const post=new Post({
+	user:id,
+	text:text,
+	img:cloudurl,
+	})
+	  await  post.save();
+	res.status(201).json({meassage:"post created sucessfully",data:post});
+}catch(error){
+	res.status(500).json({meassage:"internal server error"});
+}
 
-    // 2. Validate input
-    if (!text && !img) {
-      return res
-        .status(400)
-        .json({ message: "Text or image is required to create a post" });
-    }
-
-    // 3. Upload image to Cloudinary (if exists)
-    let imageUrl = "";
-    if (img) {
-      const imgCloud = await cloudinary.uploader.upload(img);
-      imageUrl = imgCloud.secure_url;
-    }
-
-    // 4. Create post
-    const newPost = new Post({
-      user: userId,
-      text,
-      img: imageUrl,
-    });
-
-    // 5. Save post
-    const createdPost = await newPost.save();
-
-    // 6. Send response
-    return res.status(201).json(createdPost);
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
-  }
 };
+
 
 export const deletepost = async (req, res) => {
   try {
@@ -76,21 +64,21 @@ export const deletepost = async (req, res) => {
 
 export const likePost = async (req, res) => {
   try {
-    const { postid } = req.params;
+    const {id} = req.params;
     const userid = req.user._id;
 
     // Find the post by ID
-    const post = await Post.findById(postid);
+    const post = await Post.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    const isLiked = post.likes.includes(userid);
+    const isLiked = post.likes.includes(id);
 
     if (isLiked) {
       // User has already liked the post, so we remove the like
       const updatedPost = await Post.findByIdAndUpdate(
-        postid,
+        id,
         { $pull: { likes: userid } },
         { new: true }  // Return the updated post
       );
@@ -106,7 +94,7 @@ export const likePost = async (req, res) => {
     } else {
       // User has not liked the post, so we add the like
       const updatedPost = await Post.findByIdAndUpdate(
-        postid,
+        id,
         { $push: { likes: userid } },
         { new: true }  // Return the updated post
       );
@@ -132,8 +120,8 @@ export const  commentpost=async(req,res)=>{
     try{
       const {postid}=req.params;
 	  const {text}=req.body;
-	  const userid=req.user._id;
-	  const user=await User.findById(userid);
+	  const id=req.user._id;
+	  const user=await User.findById(id);
 	  if(!user){
 		return res.status(404).json({message:"user is not found "});
 	  }
@@ -146,12 +134,12 @@ export const  commentpost=async(req,res)=>{
 	  }
        const comment ={
 		text,
-		user:userid
+		user:id
 	   }
 
 	   await post.comment.push(comment);
 	   const commentvalue=await post.save();
-        res.status(201).json(commentvalue.comment);
+        res.status(201).json(post);
 	 
 
 
@@ -162,10 +150,10 @@ export const  commentpost=async(req,res)=>{
 
 export const getAllPostsByUser = async (req, res) => {
   try {
-    const { userId } = req.params;  // Extract userId from request params
+    const { id } = req.params;  // Extract id from request params
 
     // Find all posts created by the specific user
-    const posts = await Post.find({ user: userId });
+    const posts = await Post.find({ user: id });
 
     if (posts.length === 0) {
       return res.status(404).json({ message: "No posts found for this user" });
