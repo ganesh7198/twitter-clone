@@ -116,7 +116,7 @@ export const getme=async(req,res)=> {
 
   }catch(error){
    res.status(500).json({
-    message:"eroor in the get me middleware"
+    message:"eroor in the getme"
    })
   }
 }

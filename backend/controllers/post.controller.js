@@ -82,7 +82,7 @@ export const likePost = async (req, res) => {
         { $pull: { likes: userid } },
         { new: true }  // Return the updated post
       );
-
+       await User.findByIdAndUpdate(userid,{$pull:{likedpost:id}},{new :true});
       // Optionally, delete the notification if exists
       await Notification.findOneAndDelete({
         from: userid,
@@ -98,6 +98,8 @@ export const likePost = async (req, res) => {
         { $push: { likes: userid } },
         { new: true }  // Return the updated post
       );
+      await User.findByIdAndUpdate(userid,{$push:{likedpost:id}},{new :true});
+      
 
       // Create a notification for the like action
       const notification = new Notification({
@@ -153,8 +155,10 @@ export const getAllPostsByUser = async (req, res) => {
     const { id } = req.params;  // Extract id from request params
 
     // Find all posts created by the specific user
-    const posts = await Post.find({ user: id });
-
+    const posts = await Post.find().sort({createdAt:-1}).populate({path:"user",select:"-password"}).populate({
+      path:"comment.user",
+      select:"-password"
+    });
     if (posts.length === 0) {
       return res.status(404).json({ message: "No posts found for this user" });
     }
@@ -164,5 +168,67 @@ export const getAllPostsByUser = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const likedbyuser = async (req, res) => {
+  try {
+    const {id} = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const likedPosts = await Post.find({
+      _id: { $in: user.likedpost } // ✅ correct
+    })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user", // ✅ correct path
+        select: "-password",
+      });
+
+    res.status(200).json(likedPosts);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+ 
+export const getfollowingpost = async (req, res) => {
+  try {
+    const id = req.user.id; // ✅ correct extraction
+
+    // ✅ await is REQUIRED
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const followingList = user.following;
+
+    // If user follows no one
+    if (followingList.length === 0) {
+      return res.status(200).json({meassage:"no following "});
+    }
+
+    // ✅ sort & populate MUST be chained on query
+    const posts = await Post.find({
+      user: { $in: followingList },
+    })
+      .sort({ createdAt: -1 })
+      .populate("user", "-password")
+      .populate("comment.user", "-password");
+
+    res.status(200).json(posts);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

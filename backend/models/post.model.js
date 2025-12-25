@@ -24,7 +24,7 @@ const postScheam=mongoose.Schema({
 		user:{
 			type :mongoose.Schema.Types.ObjectId,
 		     ref:"User",
-		requried:true
+		   requried:true
 		}
 	}]
 },{timestamps:true})
