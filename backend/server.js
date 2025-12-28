@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
+import cors from "cors";
 import {v2 as cloudinary} from "cloudinary"
 cloudinary.config({
   cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
@@ -8,6 +9,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 
 })
+
 import authRoutes from "./routes/authRoutes.routes.js";
 import post from "./routes/post.routes.js";
 import user from "./routes/user.routes.js"
@@ -15,6 +17,12 @@ import notification from "./routes/notification.routes.js"
 import connectmongodb from "./Database/db.js";
 import cookieParser from "cookie-parser";
 const app = express();
+app.use(
+  cors({
+    origin: "http://localhost:5173", // frontend origin
+    credentials: true, // allow cookies if needed
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
