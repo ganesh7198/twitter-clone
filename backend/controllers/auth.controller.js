@@ -8,7 +8,7 @@ export const LoginController=async(req,res)=>{
     const user= await User.findOne({username});
     const ispasswordcorrect= await bcrypt.compare(password,user?.password || "");
     if(!user || !ispasswordcorrect){
-      res.status(404).json({message:"user is not found "})
+       return res.status(404).json({message:"user is not found "})
     }
     generateTokenAndSetCookie(user._id,res );
     res.status(201).json({

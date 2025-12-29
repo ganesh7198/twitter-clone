@@ -64,10 +64,10 @@ const useSignup = () => {
           setIsSignup(true);
           navigate("/", { replace: true });
         }
-      } catch (err) {
+      } catch (error) {
         setError({
           success: false,
-          message: err.message || "Signup failed. Try again.",
+          message: error.message || "Signup failed. Try again.",
           type: "api",
         });
       }

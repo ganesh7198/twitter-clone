@@ -1,5 +1,5 @@
 import { useState } from "react";
-import useSignup from "../../customhook/Signuphook.jsx";
+import useSignup from "../../customhook/Signuphook";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Signup() {
@@ -26,7 +26,7 @@ function Signup() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 shadow-lg">
             <span className="text-2xl font-bold text-red-600">P</span>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Welcome to our website</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Welcome to our signup</h1>
           <p className="text-gray-200">Find new ideas to try</p>
         </div>
 
